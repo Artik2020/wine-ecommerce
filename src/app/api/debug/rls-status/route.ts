@@ -1,9 +1,10 @@
-import { createClient, supabaseAdmin } from '@/lib/supabaseServer'
+import { createClient, getSupabaseAdmin } from '@/lib/supabaseServer'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
   try {
     const supabase = createClient()
+    const supabaseAdmin = getSupabaseAdmin()
     
     // Test 1: Check if we can access profiles table with service role (bypasses RLS)
     const { data: serviceProfiles, error: serviceError } = await supabaseAdmin

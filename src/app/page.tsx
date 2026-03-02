@@ -5,7 +5,7 @@ import { WINERIES } from '@/data/wineries';
 import WineCard from '@/components/WineCard';
 import BasketDrawer from '@/components/BasketDrawer';
 import BasketButton from '@/components/BasketButton';
-import { supabase, getCurrentUser } from '@/lib/supabaseClient';
+import { getSupabaseBrowserClient, getCurrentUser } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -43,6 +43,7 @@ export default function Home() {
     checkUser();
 
     // Listen for auth changes
+    const supabase = getSupabaseBrowserClient();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('🔄 Auth state change:', event, session?.user?.id || 'null');
@@ -74,9 +75,11 @@ export default function Home() {
                 <span className="text-amber-100">Welcome, {user?.email}</span>
                 <BasketButton onClick={() => setIsBasketOpen(true)} />
                 <button
-                  onClick={() => {
-                    supabase.auth.signOut();
+                  onClick={async () => {
+                    const supabase = getSupabaseBrowserClient();
+                    await supabase.auth.signOut();
                     setShowMembersArea(false);
+                    setUser(null);
                   }}
                   className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition-colors"
                 >

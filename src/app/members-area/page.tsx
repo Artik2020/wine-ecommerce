@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase, getCurrentUser } from '@/lib/supabaseClient'
+import { getSupabaseBrowserClient, getCurrentUser } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -30,6 +30,7 @@ export default function MembersArea() {
     checkAuth()
 
     // Listen for auth changes
+    const supabase = getSupabaseBrowserClient();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_OUT') {
@@ -45,6 +46,7 @@ export default function MembersArea() {
   }, [router])
 
   const handleLogout = async () => {
+    const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut()
     router.push('/login')
   }

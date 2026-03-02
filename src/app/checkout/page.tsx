@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase, getCurrentUser } from '@/lib/supabaseClient';
+import { getCurrentUser, getSupabaseBrowserClient } from '@/lib/supabaseClient';
 import { basketUtils, Basket, BasketItem } from '@/lib/basket';
 import { X, ShoppingCart, Truck, Plane, Ship } from 'lucide-react';
 

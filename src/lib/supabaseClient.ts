@@ -1,10 +1,20 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Browser-safe client - uses anon key only
-export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+// Browser-safe client - lazy init to avoid build-time crashes when env vars are missing
+let supabaseClient: ReturnType<typeof createClient> | null = null
+
+export function getSupabaseBrowserClient() {
+  if (supabaseClient) return supabaseClient
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!supabaseUrl || !anonKey) {
+    throw new Error('Supabase browser client is not configured (missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY)')
+  }
+
+  supabaseClient = createClient(supabaseUrl, anonKey)
+  return supabaseClient
+}
 
 // Helper types for auth
 export interface AuthUser {
@@ -16,12 +26,14 @@ export interface AuthUser {
 
 // Helper function to get current user
 export async function getCurrentUser() {
+  const supabase = getSupabaseBrowserClient()
   const { data: { user } } = await supabase.auth.getUser()
   return user
 }
 
 // Helper function to get user profile
 export async function getUserProfile(userId: string) {
+  const supabase = getSupabaseBrowserClient()
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
