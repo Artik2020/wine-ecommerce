@@ -23,6 +23,11 @@ export default function SignupPage() {
 
     try {
       const supabase = getSupabaseBrowserClient()
+      if (!supabase) {
+        setError('Supabase is not configured. Please add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel Environment Variables and redeploy.')
+        setLoading(false)
+        return
+      }
       const { data, error } = await supabase.auth.signUp({
         email,
         password,

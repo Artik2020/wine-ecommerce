@@ -14,6 +14,7 @@ export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showMembersArea, setShowMembersArea] = useState(false);
+  const [configError, setConfigError] = useState<string>('');
   const router = useRouter();
 
   useEffect(() => {
@@ -44,6 +45,12 @@ export default function Home() {
 
     // Listen for auth changes
     const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setConfigError('Missing Supabase configuration. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel Environment Variables, then redeploy.');
+      setLoading(false);
+      return;
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('🔄 Auth state change:', event, session?.user?.id || 'null');
@@ -53,6 +60,17 @@ export default function Home() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  if (configError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="max-w-lg w-full bg-white rounded-lg shadow p-6">
+          <h1 className="text-xl font-semibold text-gray-900">Configuration required</h1>
+          <p className="mt-2 text-sm text-gray-700">{configError}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (showMembersArea) {
     // Show members area content
@@ -77,7 +95,9 @@ export default function Home() {
                 <button
                   onClick={async () => {
                     const supabase = getSupabaseBrowserClient();
-                    await supabase.auth.signOut();
+                    if (supabase) {
+                      await supabase.auth.signOut();
+                    }
                     setShowMembersArea(false);
                     setUser(null);
                   }}

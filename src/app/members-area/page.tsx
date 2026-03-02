@@ -8,6 +8,7 @@ import Link from 'next/link'
 export default function MembersArea() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [configError, setConfigError] = useState<string>('')
   const router = useRouter()
 
   useEffect(() => {
@@ -31,6 +32,12 @@ export default function MembersArea() {
 
     // Listen for auth changes
     const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setConfigError('Missing Supabase configuration. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel Environment Variables, then redeploy.');
+      setLoading(false)
+      return
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_OUT') {
@@ -47,8 +54,23 @@ export default function MembersArea() {
 
   const handleLogout = async () => {
     const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setConfigError('Missing Supabase configuration.');
+      return
+    }
     await supabase.auth.signOut()
     router.push('/login')
+  }
+
+  if (configError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="max-w-lg w-full bg-white rounded-lg shadow p-6">
+          <h1 className="text-xl font-semibold text-gray-900">Configuration required</h1>
+          <p className="mt-2 text-sm text-gray-700">{configError}</p>
+        </div>
+      </div>
+    )
   }
 
   if (loading) {

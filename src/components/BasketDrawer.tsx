@@ -218,28 +218,28 @@ export default function BasketDrawer({ isOpen, onClose }: BasketDrawerProps) {
                 basketItems={basket.items}
               />
             ) : (
-              clientSecret && (
+              clientSecret &&
+              (stripePromise ? (
                 <Elements options={options} stripe={stripePromise}>
                   <div className="space-y-4">
                     <div className="bg-gray-50 p-4 rounded-md">
                       <h4 className="font-medium text-black mb-2">Order Summary</h4>
-                      <div className="space-y-1 text-sm">
+                      <div className="text-sm text-gray-600 space-y-1">
                         <div className="flex justify-between">
-                          <span className="text-black">Subtotal:</span>
-                          <span className="text-black">€{basket.total.toFixed(2)}</span>
+                          <span>Subtotal:</span>
+                          <span>€{basket.total.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-black">Shipping:</span>
-                          <span className="text-black">{shipping === 0 ? 'FREE' : `€${shipping.toFixed(2)}`}</span>
+                          <span>Shipping:</span>
+                          <span>€{shipping.toFixed(2)}</span>
                         </div>
-                        <div className="flex justify-between font-semibold pt-2 border-t">
-                          <span className="text-black">Total:</span>
-                          <span className="text-black">€{finalTotal.toFixed(2)}</span>
+                        <div className="flex justify-between font-medium text-black border-t pt-1">
+                          <span>Total:</span>
+                          <span>€{finalTotal.toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
-                    
-                    <StripePaymentForm
+                    <StripePaymentForm 
                       customerDetails={customerDetails!}
                       basket={basket}
                       shipping={shipping}
@@ -248,7 +248,11 @@ export default function BasketDrawer({ isOpen, onClose }: BasketDrawerProps) {
                     />
                   </div>
                 </Elements>
-              )
+              ) : (
+                <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                  Payments are not configured. Please set `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` in Vercel Environment Variables and redeploy.
+                </div>
+              ))
             )}
           </div>
 
