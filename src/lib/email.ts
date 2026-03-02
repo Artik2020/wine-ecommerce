@@ -1,5 +1,3 @@
-import { Resend } from 'resend';
-
 interface WineryOrderEmailData {
   suborder: {
     id: string;
@@ -35,7 +33,28 @@ interface WineryOrderEmailData {
   };
 }
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+async function resendSendEmail(params: { from: string; to: string[]; subject: string; html: string }) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    return { ok: false as const, error: 'RESEND_API_KEY is not set' };
+  }
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(params),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    return { ok: false as const, error: text || `Resend API error: ${res.status}` };
+  }
+
+  return { ok: true as const };
+}
 
 export async function sendWineryOrderEmail(data: WineryOrderEmailData): Promise<{ success: boolean; error?: string }> {
   try {
@@ -96,16 +115,16 @@ export async function sendWineryOrderEmail(data: WineryOrderEmailData): Promise<
       </div>
     `;
 
-    const { data: emailData, error } = await resend.emails.send({
+    const result = await resendSendEmail({
       from: 'orders@champagnehouse.com',
       to: [data.winery.order_email],
       subject: `New Order – GroupOrder ${data.groupOrder.id} – Suborder ${data.suborder.id}`,
       html: emailContent,
     });
 
-    if (error) {
-      console.error('Email send error:', error);
-      return { success: false, error: error.message };
+    if (!result.ok) {
+      console.error('Email send error:', result.error);
+      return { success: false, error: result.error };
     }
 
     console.log('Email sent successfully to:', data.winery.order_email);
