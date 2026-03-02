@@ -229,7 +229,16 @@ export class ShippingCalculator {
   /**
    * Calculate region-specific fees
    */
-  private calculateRegionFee(region: string, wineValueTotal: number, directToConsumer: boolean, regionFees: Record<string, { amount: number; currency: string; description: string }>) {
+  private calculateRegionFee(
+    region: string,
+    wineValueTotal: number,
+    directToConsumer: boolean,
+    regionFees: Record<
+      string,
+      | { amount: number; currency: string; description: string }
+      | { percentage: number; currency: string; description: string }
+    >
+  ) {
     const regionFee = regionFees[region];
     if (!regionFee) return null;
 

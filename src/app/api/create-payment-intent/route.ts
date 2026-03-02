@@ -1,13 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-01-28.clover',
-});
+function getStripeClient() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) return null;
+  return new Stripe(key, {
+    apiVersion: '2026-01-28.clover',
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { amount, currency = 'eur', customer_email, metadata } = await request.json();
+    const { amount, currency = 'eur', metadata } = await request.json();
+
+    const stripe = getStripeClient();
+    if (!stripe) {
+      return NextResponse.json(
+        { error: 'Stripe is not configured (missing STRIPE_SECRET_KEY)' },
+        { status: 500 }
+      );
+    }
 
     if (!amount || amount <= 0) {
       return NextResponse.json(
